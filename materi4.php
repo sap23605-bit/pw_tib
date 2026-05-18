@@ -1,4 +1,3 @@
-
 <form method="POST">
     username : <input type="text" name="username"><br><br>
     password : <input type="password" name="password"><br><br>
@@ -60,49 +59,72 @@ if ($result->num_rows > 0) {
 ?>
 
 <?php
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
-    $sql = "DELETE FROM db_tib4 WHERE id_user = '7'";
+include 'koneksi.php';
 
-    if ($koneksi->query($sql) === TRUE) {
-        echo "Data berhasil dihapus";
-    } else {
-        echo "Error: " . $sql . "<br>" . $koneksi->error;
-    }
+if (isset($_GET['hapus'])) {
+    $id = $_GET['hapus'];
+    mysqli_query($koneksi, "DELETE FROM user WHERE id='$id'");
+    header("Location: materi4.php");
+    exit;
+}
+
+if (isset($_POST['update'])) {
+    mysqli_query($koneksi, "UPDATE user SET 
+        username='$_POST[username]',
+        password='$_POST[password]',
+        nama='$_POST[nama]',
+        email='$_POST[email]'
+        WHERE id='$_POST[id]'
+    ");
+    header("Location: materi4.php");
+    exit;
+}
+
+$dataEdit = null;
+if (isset($_GET['edit'])) {
+    $idEdit = $_GET['edit'];
+    $resultEdit = mysqli_query($koneksi, "SELECT * FROM user WHERE id='$idEdit'");
+    $dataEdit = mysqli_fetch_assoc($resultEdit);
 }
 ?>
-</table>
 
-
+<form method="POST">
+    Username:<input type="text" name="username"><br>
+    Password :<input type="password" name="password"><br>
+    Nama :<input type="text" name="nama"><br>
+    Email :<input type="text" name="email"><br>
+    <input type="submit" value="Kirim Data" name = "kirim"><br>
+</form>
 
 <?php
-if (isset($_GET['edit'])) {
-    $id = $_GET['edit'];
+if (isset($_POST['kirim'])) {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+    $nama = $_POST['nama'];
+    $email = $_POST['email'];
 
-    $sql = "SELECT * FROM user WHERE id = '$id'";
-    $result = $koneksi->query($sql);
+    $query = "INSERT INTO user (username, password, nama, email) 
+              VALUES ('$username', '$password', '$nama', '$email')";
 
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-
-            echo "<form action='materi4.php' method='POST'>";
-            echo "<input type='hidden' name='id' value='" . $row['id_user'] . "'>";
-
-            echo "Username : <input type='text' name='username' value='" . $row['username'] . "'><br><br>";
-
-            echo "Password : <input type='password' name='password' value='" . $row['password'] . "'><br><br>";
-
-            echo "Nama : <input type='text' name='nama' value='" . $row['nama'] . "'><br><br>";
-
-            echo "Email : <input type='email' name='email' value='" . $row['email'] . "'><br><br>";
-
-            echo "<button type='submit' name='update'>Update</button>";
-
-            echo "</form>";
-        }
+    if (mysqli_query($koneksi, $query)) {
+        echo "Data berhasil ditambah";
+    } else {
+        echo "Data gagal ditambahkan";
     }
 }
 ?>
+
+<?php if ($dataEdit) { ?>
+<form method="POST">
+    <input type="hidden" name="id" value="<?= $dataEdit['id'] ?>">
+    Username: <input type="text" name="username" value="<?= $dataEdit['username'] ?>"><br>
+    Password: <input type="text" name="password" value="<?= $dataEdit['password'] ?>"><br>
+    Nama: <input type="text" name="nama" value="<?= $dataEdit['nama'] ?>"><br>
+    Email: <input type="text" name="email" value="<?= $dataEdit['email'] ?>"><br>
+    <button type="submit" name="update">Update</button>
+</form>
+<br>
+<?php } ?>
 <?php
 if (isset($_POST['update'])) {
 
